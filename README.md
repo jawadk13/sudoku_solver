@@ -1,2 +1,4 @@
 # sudoku_solver
-program to solve Sudoku puzzles utilizzzing the  wave function collapse algorithm
+Program to solve Sudoku puzzles utilizing the  wave function collapse algorithm
+
+https://en.wikipedia.org/wiki/Model_synthesis
