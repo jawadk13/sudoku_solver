@@ -1,17 +1,5 @@
-"""Sudoku solver with two algorithms: backtracking and wave function collapse.
-
-Run it from the command line:
-
-    python sudoku_solver.py                     # solve the built-in example
-    python sudoku_solver.py --example inkala    # solve one of the bundled puzzles
-    python sudoku_solver.py "530070000600195..."  # solve your own puzzle (81 digits)
-    python sudoku_solver.py --file puzzle.txt   # read the puzzle from a file
-    python sudoku_solver.py --method both       # compare the two solvers
-
-A puzzle is written as 81 characters read left to right, top to bottom.
-Use 1-9 for given numbers and 0 or . for empty cells. Spaces, new lines
-and the characters | - + are ignored, so a nicely drawn grid works too.
-"""
+# Sudoku solver with two algorithms: backtracking and wave function collapse.
+# All code written by Jawad Kazma
 
 from __future__ import annotations
 
@@ -24,13 +12,8 @@ Grid = list[list[int]]
 
 DIGITS = frozenset(range(1, 10))
 
-
-# ---------------------------------------------------------------------------
-# Reading, checking and printing grids
-# ---------------------------------------------------------------------------
-
 def parse_grid(text: str) -> Grid:
-    """Turn an 81-character puzzle string into a 9x9 grid of ints (0 = empty)."""
+    # turn an 81-character puzzle string into a 9x9 grid of ints (0 = empty)
     cells = []
     for ch in text:
         if ch.isdigit():
@@ -47,7 +30,7 @@ def parse_grid(text: str) -> Grid:
 
 
 def format_grid(grid: Grid) -> str:
-    """Return the grid as text with lines between the 3x3 boxes."""
+    # return the grid as text with lines between the 3x3 boxes
     lines = []
     for r in range(9):
         if r in (3, 6):
@@ -62,7 +45,7 @@ def format_grid(grid: Grid) -> str:
 
 
 def find_conflicts(grid: Grid) -> list[str]:
-    """List any rule breaks in the given numbers (e.g. two 5s in one row)."""
+    # list any rule breaks in the given numbers (Ex: two 5s in one row)
     problems = []
     units = (
         [("row", r + 1, [(r, c) for c in range(9)]) for r in range(9)]
@@ -82,7 +65,7 @@ def find_conflicts(grid: Grid) -> list[str]:
 
 
 def check_grid(grid: Grid) -> None:
-    """Raise ValueError if the grid has the wrong shape, bad values or conflicts."""
+    # raise ValueError if the grid has the wrong shape, bad values or conflicts
     if len(grid) != 9 or any(len(row) != 9 for row in grid):
         raise ValueError("the grid must be 9 rows of 9 cells")
     if any(value not in range(10) for row in grid for value in row):
@@ -93,19 +76,18 @@ def check_grid(grid: Grid) -> None:
 
 
 def is_solved(grid: Grid) -> bool:
-    """True if every cell is filled and no rule is broken."""
+    # true if every cell is filled and no rule is broken
     return all(all(row) for row in grid) and not find_conflicts(grid)
 
 
 @dataclass
 class Stats:
-    """Counts how much work a solver did.
+    # counts how much work a solver did.
 
-    guesses:   numbers the solver tried placing without being sure
-    backtracks: guesses that led to a dead end and had to be undone
-    max_guesses: optional limit; the solver stops with SearchLimitReached
-                 once it has made this many guesses
-    """
+    # guesses: numbers the solver tried placing without being sure
+    # backtracks: guesses that led to a dead end and had to be undone
+    # max_guesses: optional limit; the solver stops with SearchLimitReached once it has made this many guesses
+
     guesses: int = 0
     backtracks: int = 0
     max_guesses: int | None = None
@@ -117,18 +99,17 @@ class Stats:
 
 
 class SearchLimitReached(Exception):
-    """Raised when a solver goes past Stats.max_guesses."""
+    """Raised when a solver goes past Stats.max_guesses"""
 
 
-# ---------------------------------------------------------------------------
-# Solver 1: backtracking (the original approach)
-# ---------------------------------------------------------------------------
-# Visit the cells in reading order. In each empty cell, try 1 to 9 and keep
-# the first number that doesn't break a rule, then move on to the next cell.
-# If a cell has no number that fits, go back and change the previous guess.
+# solver 1: backtracking (the original approach)
+# ---------------------------------------------------------------------------------
+# visit the cells in reading order
+# in each empty cell, try 1 to 9 and keep the first number that doesn't break a rule, then move on to the next cell
+# if a cell has no number that fits, go back and change the previous guess.
 
 def is_move_valid(grid: Grid, row: int, col: int, num: int) -> bool:
-    """Check whether num can go at (row, col) without breaking a rule."""
+    # check whether num can go at (row, col) without breaking a rule
     # check this row
     for i in range(9):
         if grid[row][i] == num:
@@ -177,33 +158,30 @@ def _backtrack(grid: Grid, row: int, col: int, stats: Stats) -> bool:
 
 
 def solve_backtracking(grid: Grid, stats: Stats | None = None) -> Grid | None:
-    """Solve with plain backtracking. Returns a solved copy, or None if impossible."""
+    # solve with plain backtracking; returns a solved copy, or none if impossible
     check_grid(grid)
     stats = stats if stats is not None else Stats()
     work = [row[:] for row in grid]  # don't change the caller's grid
     return work if _backtrack(work, 0, 0, stats) else None
 
 
+# solver 2: wave function collapse
 # ---------------------------------------------------------------------------
-# Solver 2: wave function collapse
-# ---------------------------------------------------------------------------
-# Every cell starts out as "any of 1-9" (its superposition). The solver keeps
-# that set of possible numbers, called the cell's candidates, for all 81 cells.
-#
-#   1. Observe:   pick the unsolved cell with the fewest candidates
-#                 (the lowest entropy), because it is the least risky guess.
-#   2. Collapse:  fix that cell to one of its candidates.
-#   3. Propagate: remove that number from every cell in the same row,
-#                 column and box. If that leaves a cell with one candidate,
-#                 it is solved too, so propagate from it as well.
-#   4. Repeat until every cell has one candidate (solved), or a cell runs out
-#      of candidates (a contradiction). On a contradiction, undo the last
-#      collapse and try that cell's next candidate.
-#
-# Cells are numbered 0-80 in reading order, so cell = row * 9 + col.
+# every cell starts out as "any of 1-9" (its superposition)
+# the solver keeps that set of possible numbers (cell's candidates) for all 81 cells
+
+# observe: pick unsolved cell with fewest candidates (lowest entropy) b/c it is the least risky guess
+# collapse: fix that cell to one of its candidates
+# propagate: 
+#   - remove that number from every cell in the same row, column and box
+#   - if that leaves a cell with one candidate, it is solved too, so propagate from it as well
+#   - repeat until every cell has one candidate (solved), or a cell runs out of candidates (a contradiction)
+#   - on a contradiction, undo the last collapse and try that cell's next candidate
+
+# cells are numbered 0-80 in reading order, so cell = row * 9 + col.
 
 def _peers(cell: int) -> frozenset[int]:
-    """All cells sharing a row, column or box with this cell (not itself)."""
+    # all cells sharing a row, column or box with this cell (not itself)
     row, col = divmod(cell, 9)
     box_row, box_col = row - row % 3, col - col % 3
     same_row = {row * 9 + c for c in range(9)}
@@ -218,11 +196,9 @@ Wave = list[frozenset]  # the candidates of each of the 81 cells
 
 
 def _collapse(wave: Wave, cell: int, value: int) -> bool:
-    """Fix cell to value and propagate. Returns False on a contradiction.
+    # fix cell to value and propagate; returns false on a contradiction
+    # the candidate sets are frozensets that are replaced, never changed in place, so a shallow copy of the wave is enough to undo a guess later
 
-    The candidate sets are frozensets that are replaced, never changed in
-    place, so a shallow copy of the wave is enough to undo a guess later.
-    """
     if value not in wave[cell]:
         return False
     wave[cell] = frozenset([value])
@@ -241,7 +217,7 @@ def _collapse(wave: Wave, cell: int, value: int) -> bool:
 
 
 def _initial_wave(grid: Grid) -> Wave | None:
-    """Start every cell as 1-9, then collapse the given numbers."""
+    # start every cell as 1-9, then collapse the given numbers
     wave: Wave = [DIGITS] * 81
     for cell in range(81):
         value = grid[cell // 9][cell % 9]
@@ -251,7 +227,7 @@ def _initial_wave(grid: Grid) -> Wave | None:
 
 
 def _lowest_entropy_cell(wave: Wave) -> int | None:
-    """The unsolved cell with the fewest candidates, or None if all are solved."""
+    # the unsolved cell with the fewest candidates, or none if all are solved
     best = None
     for cell, candidates in enumerate(wave):
         if len(candidates) > 1 and (best is None or len(candidates) < len(wave[best])):
@@ -277,7 +253,7 @@ def _search(wave: Wave, stats: Stats) -> Wave | None:
 
 
 def solve_wfc(grid: Grid, stats: Stats | None = None) -> Grid | None:
-    """Solve with wave function collapse. Returns a solved grid, or None if impossible."""
+    # solve with wave function collapse; returns a solved grid, or none if impossible
     check_grid(grid)
     stats = stats if stats is not None else Stats()
     wave = _initial_wave(grid)
@@ -290,7 +266,7 @@ def solve_wfc(grid: Grid, stats: Stats | None = None) -> Grid | None:
 
 
 def count_solutions(grid: Grid, limit: int = 2) -> int:
-    """Count solutions up to limit. A proper Sudoku has exactly one."""
+    # count solutions up to limit (a proper Sudoku has exactly one)
     check_grid(grid)
     wave = _initial_wave(grid)
     if wave is None:
@@ -316,10 +292,7 @@ def count_solutions(grid: Grid, limit: int = 2) -> int:
 
 SOLVERS = {"wfc": solve_wfc, "backtracking": solve_backtracking}
 
-
-# ---------------------------------------------------------------------------
-# Command line
-# ---------------------------------------------------------------------------
+# command line
 
 def _run(name: str, grid: Grid) -> Grid | None:
     stats = Stats()

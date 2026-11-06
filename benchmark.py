@@ -1,9 +1,7 @@
-"""Time both solvers on every bundled puzzle and print a Markdown table.
+# time both solvers on every bundled puzzle and print a Markdown table
+# python benchmark.py
 
-    python benchmark.py
-
-Backtracking is stopped after MAX_GUESSES guesses so the run doesn't take forever.
-"""
+# backtracking is stopped after MAX_GUESSES guesses so the run doesn't take forever
 
 import time
 

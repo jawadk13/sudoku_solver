@@ -1,8 +1,8 @@
-"""Example puzzles, from easy to extreme, used by the command line, tests and benchmark.
+# example puzzles (from easy to extreme) used by the command line, tests and benchmark
 
-Each puzzle is 81 characters read left to right, top to bottom (0 = empty).
-Every puzzle here has exactly one solution (checked in the tests).
-"""
+# each puzzle is 81 characters read left to right, top to bottom (0 = empty)
+# every puzzle here has exactly one solution (checked in the tests)
+
 
 from dataclasses import dataclass
 
