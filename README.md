@@ -48,11 +48,11 @@ Solution:
 More ways to run it:
 
 ```
-python sudoku_solver.py --example inkala              # a bundled puzzle (easy, evil, inkala, seventeen, anti_backtracking)
-python sudoku_solver.py --method both                 # run both solvers and compare
-python sudoku_solver.py --method backtracking         # use the original solver
-python sudoku_solver.py 530070000600195000098000060800060003400803001700020006060000280000419005000080079
-python sudoku_solver.py --file my_puzzle.txt
+python sudoku_solver.py                     # solve the built-in example
+python sudoku_solver.py --example inkala    # solve one of the bundled puzzles
+python sudoku_solver.py "530070000600195..."  # solve your own puzzle (81 digits)
+python sudoku_solver.py --file puzzle.txt   # read the puzzle from a file
+python sudoku_solver.py --method both       # compare the two solvers
 ```
 
 A puzzle is 81 characters read left to right, top to bottom: `1`-`9` for given numbers and `0` or `.` for empty cells. Spaces, line breaks and the characters `| - +` are ignored, so you can also paste a grid drawn like the one above.
