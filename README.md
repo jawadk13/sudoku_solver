@@ -115,11 +115,11 @@ All five bundled puzzles have exactly one solution, which the tests confirm. Res
 
 | Puzzle | Difficulty | Clues | Backtracking | Wave function collapse |
 |---|---|---|---|---|
-| Wikipedia example | Easy | 30 | 0.02 s, 4,208 guesses | 0.0004 s, **0 guesses** |
+| Wikipedia example | Easy | 30 | 0.02 s, 4,208 guesses | 0.0002 s, **0 guesses** |
 | Sudoku.com Evil | Evil (hardest level on Sudoku.com) | 23 | 0.02 s, 4,669 guesses | 0.0006 s, 24 guesses |
-| Arto Inkala's "world's hardest Sudoku" | Extreme | 21 | 0.25 s, 49,558 guesses | 0.02 s, 1,850 guesses |
-| 17-clue puzzle | Extreme (fewest clues possible) | 17 | not solved: stopped after 5,000,000 guesses (27 s) | 0.01 s, 1,456 guesses |
-| Anti-backtracking puzzle | Built to defeat brute force | 17 | not solved: stopped after 5,000,000 guesses (25 s) | 0.13 s, 12,094 guesses |
+| Arto Inkala's "world's hardest Sudoku" | Extreme | 21 | 0.26 s, 49,558 guesses | 0.05 s, 1,850 guesses |
+| 17-clue puzzle | Extreme (fewest clues possible) | 17 | not solved: stopped after 5,000,000 guesses (25 s) | 0.02 s, 1,456 guesses |
+| Anti-backtracking puzzle | Built to defeat brute force | 17 | not solved: stopped after 5,000,000 guesses (22 s) | 0.17 s, 12,094 guesses |
 
 Times will vary by computer, but the guess counts are always the same.
 
@@ -138,7 +138,7 @@ In general, wave function collapse can solve any valid 9x9 Sudoku: any difficult
 sudoku_solver.py              both solvers, input checking and the command line
 puzzles.py                    the bundled example puzzles
 benchmark.py                  times both solvers on every puzzle
-tests/test_sudoku_solver.py   tests (24 of them)
+tests/test_sudoku_solver.py   tests (23 of them)
 ```
 
 Using it from your own code:

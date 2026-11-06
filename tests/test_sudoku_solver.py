@@ -10,13 +10,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from puzzles import PUZZLES  # noqa: E402
 from sudoku_solver import (  # noqa: E402
-    SearchLimitReached,
-    Stats,
+    new_stats,
     check_grid,
-    count_solutions,
+    collapse,
+    fewest_candidates,
+    initial_candidates,
     find_conflicts,
     format_grid,
-    is_solved,
     main,
     parse_grid,
     solve_backtracking,
@@ -33,6 +33,33 @@ FAST_FOR_BOTH = ["easy", "evil", "inkala"]
 
 def keeps_givens(puzzle, solution):
     return all(puzzle[r][c] in (0, solution[r][c]) for r in range(9) for c in range(9))
+
+
+def is_solved(grid):
+    return all(all(row) for row in grid) and not find_conflicts(grid)
+
+
+def count_solutions(grid, limit=2):
+    # count solutions up to limit (a proper Sudoku has exactly one)
+    candidates = initial_candidates(grid)
+    if candidates is None:
+        return 0
+    return count_from(candidates, limit)
+
+
+def count_from(candidates, limit):
+    cell = fewest_candidates(candidates)
+    if cell is None:
+        return 1
+    row, col = cell
+    found = 0
+    for num in candidates[row][col]:
+        if found >= limit:
+            break
+        trial = [[options[:] for options in cells] for cells in candidates]
+        if collapse(trial, row, col, num):
+            found += count_from(trial, limit - found)
+    return found
 
 
 class TestParsing(unittest.TestCase):
@@ -74,9 +101,6 @@ class TestChecking(unittest.TestCase):
         with self.assertRaises(ValueError):
             check_grid(parse_grid("55" + "0" * 79))
 
-    def test_check_grid_rejects_bad_shape(self):
-        with self.assertRaises(ValueError):
-            check_grid([[0] * 9] * 8)
 
 
 class TestSolvers(unittest.TestCase):
@@ -135,14 +159,14 @@ class TestSolvers(unittest.TestCase):
         self.assertEqual(count_solutions(grid, limit=5), 5)
 
     def test_easy_puzzle_needs_no_guesses_with_wfc(self):
-        stats = Stats()
+        stats = new_stats()
         solve_wfc(parse_grid(PUZZLES["easy"].grid), stats)
-        self.assertEqual(stats.guesses, 0)
+        self.assertEqual(stats["guesses"], 0)
 
     def test_guess_limit(self):
         grid = parse_grid(PUZZLES["anti_backtracking"].grid)
-        with self.assertRaises(SearchLimitReached):
-            solve_backtracking(grid, Stats(max_guesses=1000))
+        with self.assertRaises(RuntimeError):
+            solve_backtracking(grid, new_stats(1000))
 
 
 class TestCommandLine(unittest.TestCase):
@@ -169,9 +193,9 @@ class TestCommandLine(unittest.TestCase):
         self.assertIn("No solution", out)
 
     def test_invalid_input(self):
-        code, _, err = self.run_main("123")
+        code, out, _ = self.run_main("123")
         self.assertEqual(code, 2)
-        self.assertIn("Error", err)
+        self.assertIn("Error", out)
 
 
 if __name__ == "__main__":

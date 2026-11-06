@@ -6,26 +6,26 @@
 import time
 
 from puzzles import PUZZLES
-from sudoku_solver import SearchLimitReached, Stats, parse_grid, solve_backtracking, solve_wfc
+from sudoku_solver import new_stats, parse_grid, solve_backtracking, solve_wfc
 
 MAX_GUESSES = 5_000_000
 
 
 def run(solver, grid, max_guesses=None):
-    stats = Stats(max_guesses=max_guesses)
+    stats = new_stats(max_guesses)
     start = time.perf_counter()
     try:
         solver(grid, stats)
         finished = True
-    except SearchLimitReached:
+    except RuntimeError:
         finished = False
     return finished, time.perf_counter() - start, stats
 
 
 def describe(finished, seconds, stats):
     if not finished:
-        return f"gave up after {stats.max_guesses:,} guesses ({seconds:.0f} s)"
-    return f"{seconds:.4f} s, {stats.guesses:,} guesses"
+        return "gave up after " + format(stats["max_guesses"], ",") + " guesses (" + str(round(seconds)) + " s)"
+    return str(round(seconds, 4)) + " s, " + format(stats["guesses"], ",") + " guesses"
 
 
 def main():
@@ -35,8 +35,7 @@ def main():
         grid = parse_grid(puzzle.grid)
         backtracking = describe(*run(solve_backtracking, grid, MAX_GUESSES))
         wfc = describe(*run(solve_wfc, grid))
-        print(f"| {puzzle.title} | {puzzle.difficulty} | {puzzle.clues} "
-              f"| {backtracking} | {wfc} |", flush=True)
+        print("| " + puzzle.title + " | " + puzzle.difficulty + " | " + str(puzzle.clues) + " | " + backtracking + " | " + wfc + " |", flush=True)
 
 
 if __name__ == "__main__":
